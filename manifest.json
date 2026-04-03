@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "起点转微信读书助手",
+  "version": "1.0.0",
+  "description": "在起点中文网页面自动检测该书是否在微信读书上架",
+  "permissions": [],
+  "host_permissions": [
+    "https://weread.qq.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.qidian.com/*"],
+      "js": ["content.js"],
+      "css": ["styles.css"]
+    }
+  ]
+}

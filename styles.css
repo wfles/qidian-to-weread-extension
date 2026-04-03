@@ -1,0 +1,34 @@
+.qidian-to-weread-badge {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+}
+.qidian-to-weread-badge a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  background: linear-gradient(135deg, #07c160 0%, #06ad56 100%);
+  color: #fff !important;
+  text-decoration: none !important;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(7, 193, 96, 0.3);
+  white-space: nowrap;
+}
+.qidian-to-weread-badge a:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(7, 193, 96, 0.45);
+}
+.qidian-to-weread-logo {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  box-shadow: 0 0 1px 0 rgba(0, 0, 0, 0.3);
+}
+.qidian-to-weread-text {
+  line-height: 18px;
+}
