@@ -22,7 +22,7 @@ function calcSimilarity(s1, s2) {
   return (2 * common) / (s1.length + s2.length);
 }
 
-setTimeout(function() {
+function tryMatch() {
   try {
     if (!window.location.pathname.match(/^\/book\/\d+/)) {
       return;
@@ -47,6 +47,8 @@ setTimeout(function() {
     if (!bookTitle) {
       return;
     }
+
+    _matchSent = true; // 防止重复请求
 
     chrome.runtime.sendMessage(
       { action: 'searchWeread', keyword: bookTitle, author: bookAuthor },
@@ -85,19 +87,10 @@ setTimeout(function() {
           return;
         }
 
-        // 把书名父容器改成 flex 布局
-        var titleParent = titleEl.parentElement;
-        if (titleParent) {
-          titleParent.style.display = 'flex';
-          titleParent.style.alignItems = 'center';
-          titleParent.style.gap = '8px';
-          titleParent.style.flexWrap = 'wrap';
-        }
-
-        // 创建 shadow host
+        // 创建 shadow host，inline 插入 h1 内部末尾
         var host = document.createElement('span');
-        host.style.cssText = 'display:inline-flex; align-items:center; flex-shrink:0;';
-        titleEl.insertAdjacentElement('afterend', host);
+        host.style.cssText = 'display:inline-block; vertical-align:middle; margin-left:10px;';
+        titleEl.appendChild(host);
 
         // 用 Shadow DOM 隔离样式
         var shadow = host.attachShadow({ mode: 'closed' });
@@ -107,13 +100,14 @@ setTimeout(function() {
         link.target = '_blank';
         link.title = '去微信读书阅读 · ' + bestMatch.title;
         link.style.cssText =
-          'display:inline-flex; align-items:center; gap:5px; padding:4px 12px;' +
-          'background:linear-gradient(135deg,#07c160,#06ad56);' +
-          'color:#fff; text-decoration:none; border-radius:14px;' +
-          'font-size:12px; font-weight:600; cursor:pointer;' +
-          'box-shadow:0 1px 4px rgba(7,193,96,0.3); white-space:nowrap; line-height:18px;' +
+          'display:inline-flex; align-items:center; gap:4px;' +
+          'color:#07c160; text-decoration:none;' +
+          'font-size:13px; font-weight:500; cursor:pointer;' +
+          'white-space:nowrap; line-height:18px;' +
           'font-family:-apple-system,BlinkMacSystemFont,sans-serif;' +
-          'transition:transform 0.15s,box-shadow 0.15s;';
+          'transition:opacity 0.15s;';
+        link.onmouseover = function() { this.style.opacity = '0.7'; };
+        link.onmouseout = function() { this.style.opacity = '1'; };
 
         var logo = document.createElement('img');
         logo.src = WEREAD_ICON;
@@ -128,4 +122,31 @@ setTimeout(function() {
       }
     );
   } catch (e) {}
-}, 2000);
+}
+
+var _matchSent = false;
+
+// 立即尝试，如果 meta 标签已存在则直接执行
+tryMatch();
+
+// 如果首次未获取到书名，用 MutationObserver 监听 DOM 变化
+var observer = new MutationObserver(function() {
+  if (_matchSent) {
+    observer.disconnect();
+    return;
+  }
+  var meta = document.querySelector('meta[property="og:novel:book_name"]');
+  var h1 = document.querySelector('h1');
+  if ((meta && meta.content) || (h1 && h1.textContent.trim().length > 2)) {
+    tryMatch();
+    if (_matchSent) {
+      observer.disconnect();
+    }
+  }
+});
+observer.observe(document.documentElement, { childList: true, subtree: true });
+
+// 安全兜底：3秒后强制停止监听
+setTimeout(function() {
+  observer.disconnect();
+}, 3000);
